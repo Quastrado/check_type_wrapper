@@ -15,13 +15,11 @@ var2 = 2
 def args_matching(args, types):
     if len(args) != len(types):
         raise Exception('The number of passed arguments and types do not match!')
-    unavailibles = {}
+    discrepancies = {}
     for key in args.keys():
         if not isinstance(args[key], types[key]):
-            var = args[key]
-            raise Exception(
-        f'Type of argument {key} must be a {types[key].__name__}, not {args[key].__class__.__name__}'
-        )
+            discrepancies[args[key]] = types[key].__name__
+    return discrepancies
 
 
 def structure_converter(args):
@@ -36,8 +34,8 @@ def check_type(*types, **ktypes):
             types_dict = structure_converter(types)
             all_types = dict(list(types_dict.items()) + list(ktypes.items()))
 
-            args_matching(all_args, all_types)
-            return func(*args, **kwargs)
+            print(args_matching(all_args, all_types))
+            #return func(*args, **kwargs)
         return wrapper
     return decorator
 
@@ -71,14 +69,7 @@ def inc(z, x=1, y='a'):
 # def sum(x, y):
 #     return x + y
 
-# print(my_func(user_list, 5, string='some string', another_list=[1, 1, '1']))
+print(my_func(user_list, 'a', string='some string', another_list=[1, 1, '1']))
 # print(my_func(user_list, 5, another_list=[1, 1, '1'], string='some string'))
 # print(my_func(10, 5, another_list=3, string='some string'))
-a = 1
-b = '1'
 
-def func(param):
-    return param.__class__.__name__
-    # return type(param).__name__
-
-print(func(a))
