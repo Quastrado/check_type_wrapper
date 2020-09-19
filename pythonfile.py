@@ -15,10 +15,10 @@ var2 = 2
 def args_matching(args, types):
     if len(args) != len(types):
         raise Exception('The number of passed arguments and types do not match!')
-    discrepancies = {}
+    discrepancies = []
     for key in args.keys():
         if not isinstance(args[key], types[key]):
-            discrepancies[args[key]] = types[key].__name__
+            discrepancies.append((args[key], type(args[key]).__name__, types[key].__name__))
     return discrepancies
 
 

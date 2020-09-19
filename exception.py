@@ -16,5 +16,13 @@ class CustomException(Exception):
     
     
 
-d = {1: '1'}
-raise CustomException('ddd', d)
+# d = {1: '1'}
+# raise CustomException('ddd', d)
+
+class MyClass:
+
+    def __init__(self, discrepancies):
+        self.discrepancies = discrepancies
+
+
+    def 
