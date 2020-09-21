@@ -1,3 +1,4 @@
+from exception import CustomException
 
 user_list = ['a', 'b', 1, 'c']
 string = 'a'
@@ -18,12 +19,13 @@ def args_matching(args, types):
     discrepancies = []
     for key in args.keys():
         if not isinstance(args[key], types[key]):
-            discrepancies.append((args[key], type(args[key]).__name__, types[key].__name__))
+            discrepancies.append((args[key], types[key].__name__, type(args[key]).__name__))
     return discrepancies
 
 
 def structure_converter(args):
     return dict((str(index), args[index]) for index in range(len(args)))
+
 
 def check_type(*types, **ktypes):
     def decorator(func):
@@ -33,8 +35,9 @@ def check_type(*types, **ktypes):
 
             types_dict = structure_converter(types)
             all_types = dict(list(types_dict.items()) + list(ktypes.items()))
-
-            print(args_matching(all_args, all_types))
+            discrepancies = args_matching(all_args, all_types)
+            if len(discrepancies) > 0:
+                raise CustomException(discrepancies)
             #return func(*args, **kwargs)
         return wrapper
     return decorator
@@ -69,7 +72,7 @@ def inc(z, x=1, y='a'):
 # def sum(x, y):
 #     return x + y
 
-print(my_func(user_list, 'a', string='some string', another_list=[1, 1, '1']))
+print(my_func(user_list, 'a', string=1, another_list=[1, 1, '1']))
 # print(my_func(user_list, 5, another_list=[1, 1, '1'], string='some string'))
 # print(my_func(10, 5, another_list=3, string='some string'))
 

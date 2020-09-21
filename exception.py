@@ -4,25 +4,17 @@ class CustomException(Exception):
 
     def __init__(self, *args):
         if args:
-            self.message = args[0]
-            self.discrepancies = args[1]
-        
+            self.discrepancies = args[0]
+
 
     def __str__(self):
-        if self.message:
-            return (f'{self.message}', self.discrepancies)
-
-
+        messages = []
+        for discrepancy in self.discrepancies:
+            messages.append(f'Invalid type of argument {discrepancy[0]}. Expect {discrepancy[1]}, not {discrepancy[2]}')
+        return str('\n'.join(messages))
     
     
 
 # d = {1: '1'}
 # raise CustomException('ddd', d)
 
-class MyClass:
-
-    def __init__(self, discrepancies):
-        self.discrepancies = discrepancies
-
-
-    def 
