@@ -1,6 +1,0 @@
-.vscode
-.gitignore
-__pycache__/
-build/
-Quastrado_check_type_wrapper.egg-info/
-dist/
