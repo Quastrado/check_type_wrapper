@@ -1,5 +1,5 @@
-from discrepancy_item import DiscrepancyItem
-from exception import TypeMissMatchException
+from .discrepancy_item import DiscrepancyItem
+from .exception import TypeMissMatchException
 
 
 def args_matching(args, types, kwargs, ktypes):
