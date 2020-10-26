@@ -35,6 +35,7 @@ def func(arg1, arg2):
 result = func('1', '2')
 ```
 By passing parameters to the decorator, we indicate that the arguments that the function will accept must be of a numeric type. But, when calling the function, we will pass it two strings
+
 Having run the code, in the terminal we should see the following in the terminal
 ```bash
 ...
