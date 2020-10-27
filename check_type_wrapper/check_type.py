@@ -1,15 +1,15 @@
+import inspect
+
 from .discrepancy_item import DiscrepancyItem
 from .exception import TypeMissMatchException
 
 
-def args_matching(args, types, kwargs, ktypes):
-    if len(args) != len(types):
+def args_matching(args_dict, types_dict, kwargs, ktypes):
+    if len(args_dict) != len(types_dict):
         raise Exception(
             'The number of passed arguments and types do not match!'
             )
-    args_dict = structure_converter(args)
     all_args = dict(list(args_dict.items()) + list(kwargs.items()))
-    types_dict = structure_converter(types)
     all_types = dict(list(types_dict.items()) + list(ktypes.items()))
     discrepancies = []
     for key in all_args.keys():
@@ -17,7 +17,7 @@ def args_matching(args, types, kwargs, ktypes):
             continue
         if not isinstance(all_args[key], all_types[key]):
             discrepancy_items = DiscrepancyItem(
-                argument=all_args[key],
+                argument=key,
                 expected_type=all_types[key].__name__,
                 argument_type=type(all_args[key]).__name__
                 )
@@ -25,14 +25,17 @@ def args_matching(args, types, kwargs, ktypes):
     return discrepancies
 
 
-def structure_converter(args):
-    return dict((str(index), args[index]) for index in range(len(args)))
+def structure_converter(args, args_names):
+    return dict((args_names[index], args[index]) for index in range(len(args)))
 
 
 def check_type(*types, **ktypes):
     def decorator(func):
         def wrapper(*args, **kwargs):
-            discrepancies = args_matching(args, types, kwargs, ktypes)
+            args_names = inspect.getargspec(func).args
+            args_dict = structure_converter(args, args_names)
+            types_dict = structure_converter(types, args_names)
+            discrepancies = args_matching(args_dict, types_dict, kwargs, ktypes)
             if len(discrepancies) > 0:
                 raise TypeMissMatchException(discrepancies)
         return wrapper
