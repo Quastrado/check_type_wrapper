@@ -32,19 +32,102 @@ class DecoratorTest(unittest.TestCase):
                 'The number of passed arguments and types do not match!'
                 )
 
+    def test_int_type_match(self):
+        function = lambda my_int, another_int: my_int + another_int
+        result = check_type(int, int)(function)(5, 1)
+        self.assertEqual(result, 6)
 
+    
     def test_type_mismatch_int(self):
         with self.assertRaises(TypeMissMatchException) as e:
             function = lambda my_int, another_int: my_int + another_int
             result = check_type(int, int)(function)(5, '1')
 
 
+    def test_type_match_float(self):
+        function = lambda my_float, my_int: my_float + my_int
+        result = check_type(float, int)(function)(1.1, 1)
+        self.assertEqual(result, 2.1)
+    
+    
+    def test_type_mismatch_float(self):
+        with self.assertRaises(TypeMissMatchException) as e:
+            function = lambda my_float, my_int: my_float + my_int
+            result = check_type(float, int)(function)(1, '1')
+
+
+    def test_type_match_complex(self):
+        function = lambda my_complex, my_int: my_complex + my_int
+        result = check_type(complex, int)(function)(1+2j, 1)
+        self.assertEqual(result, 2+2j)
+    
+    
+    def test_type_mismatch_complex(self):
+        with self.assertRaises(TypeMissMatchException) as e:
+            function = lambda my_complex, my_int: my_complex + my_int
+            result = check_type(int, str)(function)(1+2j, '1')
+
+
+    def test_str_type_match(self):
+        function = lambda my_str, another_str: my_str + another_str
+        result = check_type(str, str)(function)('5', '1')
+        self.assertEqual(result, '51')
+    
+    
     def test_type_mismatch_str(self):
         with self.assertRaises(TypeMissMatchException) as e:
-            function = lambda my_int, another_int: my_int + another_int
+            function = lambda my_str, another_str: my_str + another_str
             result = check_type(str, str)(function)(5, '1')
 
-            
+
+    def test_list_type_match(self):
+        function = lambda my_list: my_list
+        result = check_type(list)(function)(['a', 2, 'c'])
+        self.assertEqual(result, ['a', 2, 'c'])
+    
+    
+    def test_type_mismatch_list(self):
+        with self.assertRaises(TypeMissMatchException) as e:
+            function = lambda my_list: my_list
+            result = check_type(list)(function)(('a', 2, 'c'))
+
+
+    def test_tuple_type_match(self):
+        function = lambda my_tuple: my_tuple
+        result = check_type(tuple)(function)(('a', 2, 'c'))
+        self.assertEqual(result, ('a', 2, 'c'))
+    
+    
+    def test_type_mismatch_tuple(self):
+        with self.assertRaises(TypeMissMatchException) as e:
+            function = lambda my_list: my_list
+            result = check_type(tuple)(function)(['a', 2, 'c'])
+
+
+    def test_set_type_match(self):
+        function = lambda my_set: my_set
+        result = check_type(set)(function)({'a', 2, 'c'})
+        self.assertEqual(result, {'a', 2, 'c'})
+    
+        
+    def test_type_mismatch_set(self):
+        with self.assertRaises(TypeMissMatchException) as e:
+            function = lambda my_set: my_set
+            result = check_type(set)(function)(['a', 2, 'c'])
+
+
+    def test_dict_type_match(self):
+        function = lambda my_dict: my_dict
+        result = check_type(dict)(function)({'key': 'value'})
+        self.assertEqual(result, {'key': 'value'})
+    
+    
+    def test_type_mismatch_dict(self):
+        with self.assertRaises(TypeMissMatchException) as e:
+            function = lambda my_dict: my_dict
+            result = check_type(dict)(function)(['a', 2, 'c'])
+
+                
     def test_decorator_no_exceptions(self):
         try:
             result = check_type(list)(lambda my_list: len(my_list) != len(set(my_list)))([1, '1'])
@@ -79,7 +162,7 @@ class DecoratorTest(unittest.TestCase):
             func_type = types.FunctionType
             argument_function = lambda some_int: some_int + 1
             result = check_type(func_type)(lambda func, some_int: func(some_int))(argument_function, '12')
-            self.assertEqual(e.__getattribute__[0], 'The number of passed arguments and types do not match!')
+            self.assertEqual(str(e), 'The number of passed arguments and types do not match!')
     
     
     def test_function_argument_name(self):
@@ -92,20 +175,6 @@ class DecoratorTest(unittest.TestCase):
             self.assertEqual(discrepancies_argument, function_argument)
 
     
-   
-
-    # def test_pass_the_wrapped_function(self):
-    #     @check_type(int)
-    #     def wrapped_function(some_int):
-    #         return some_int
-    #     w_f = wrapped_function(5)
-    #     def wrapped_function2():
-    #          return 5
-    #     function_type = types.FunctionType
-    #     result = check_type(function_type, int)(lambda func, my_int: func(my_int))(wrapped_function2, 10)
-    #     self.assertEqual(result, None)
-
-   
     def test_tuple_as_decorator_parameter(self):
         function_type = types.FunctionType
         function = lambda some_function, some_int: some_function(some_int)
@@ -142,6 +211,28 @@ class DecoratorTest(unittest.TestCase):
             self.assertEqual(discrepancies_argument, argument)
 
 
+    def test_miss_specifying_a_function(self):
+        try:
+            function_type = types.FunctionType
+            function = lambda some_function, some_int, another_int: some_function(some_int)
+            argument_function = lambda some_int: some_int
+            result = check_type((2,), int)(function)(argument_function, 12)
+        except Exception as e:
+            message = 'tuple index out of range'
+            self.assertEqual(str(e), message)
+    
+    
+    def test_pass_function_not_in_tuple(self):
+        try:
+            function_type = types.FunctionType
+            function = lambda some_function, some_int, another_int: some_function(some_int)
+            argument_function = lambda some_int: some_int
+            result = check_type(function_type, int)(function)(argument_function, 12)
+        except Exception as e:
+            message = "<lambda>() missing 1 required positional argument: 'another_int'"
+            self.assertEqual(str(e), message)
+    
+    
     def test_tuple_in_discreapancies_expected_arguments_count(self):
         try:
             function_type = types.FunctionType
