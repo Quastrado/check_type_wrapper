@@ -198,19 +198,7 @@ class DecoratorTest(unittest.TestCase):
             argument_function = lambda some_int: some_int
             result = check_type((function_type,), int)(function)(argument_function, 12)
 
-
-    def test_argument_tuple_in_discreapancies(self):
-        try:
-            function_type = types.FunctionType
-            function = lambda some_function, some_int, another_int: some_function(some_int)
-            argument_function = lambda some_int: some_int
-            result = check_type((function_type, 2), int)(function)(argument_function, 12)
-        except Exception as e:
-            argument = (function_type, 2)
-            discrepancies_argument = e.discrepancies[0].argument
-            self.assertEqual(discrepancies_argument, argument)
-
-
+    
     def test_miss_specifying_a_function(self):
         try:
             function_type = types.FunctionType
@@ -218,7 +206,7 @@ class DecoratorTest(unittest.TestCase):
             argument_function = lambda some_int: some_int
             result = check_type((2,), int)(function)(argument_function, 12)
         except Exception as e:
-            message = 'tuple index out of range'
+            message = 'The number of passed arguments and types do not match!'
             self.assertEqual(str(e), message)
     
     
@@ -229,32 +217,79 @@ class DecoratorTest(unittest.TestCase):
             argument_function = lambda some_int: some_int
             result = check_type(function_type, int)(function)(argument_function, 12)
         except Exception as e:
-            message = "<lambda>() missing 1 required positional argument: 'another_int'"
+            message = 'The number of passed arguments and types do not match!'
             self.assertEqual(str(e), message)
     
     
-    def test_tuple_in_discreapancies_expected_arguments_count(self):
-        try:
-            function_type = types.FunctionType
-            function = lambda some_function, some_int, another_int: some_function(some_int)
-            argument_function = lambda some_int: some_int
-            result = check_type((function_type, 2), int)(function)(argument_function, 12)
-        except Exception as e:
-            expected_arguments_count = 2
-            discrepancies_expected_type = e.discrepancies[0].expected_type
-            self.assertEqual(discrepancies_expected_type, expected_arguments_count)
+    def test_decorator_inside(self):
+        function_type = types.FunctionType
+        function = lambda some_function: some_function
+        argument_function = lambda another_nested_function, some_int: another_nested_function(some_int)
+        another_nested_function = lambda some_int: some_int * 0
+        result = check_type(function_type)(function)(argument_function)(check_type(int)(another_nested_function), 12)
+        self.assertEqual(result, 0)
 
 
-    def test_tuple_in_discreapancies_given_arguments_count(self):
+    def test_nested_functions_success(self):
+        function_type = types.FunctionType
+        third_level_func = lambda some_int: some_int * 0
+        second_level_func = lambda nested_function, some_int: nested_function(some_int)
+        first_level_func = lambda nested_function, nested_nested_function, some_int: nested_function(nested_nested_function, some_int)
+        result = check_type((function_type, 2), (function_type, 1), int)(first_level_func)(second_level_func, third_level_func, 12)
+        self.assertEqual(result, 0)
+
+
+    def test_nested_functions_missing_third_level_function(self):
         try:
             function_type = types.FunctionType
-            function = lambda some_function, some_int, another_int: some_function(some_int)
-            argument_function = lambda some_int: some_int
-            result = check_type((function_type, 2), int)(function)(argument_function, 12)
+            third_level_func = lambda some_int: some_int * 0
+            second_level_func = lambda nested_function, some_int: nested_function(some_int)
+            first_level_func = lambda nested_function, nested_nested_function, some_int: nested_function(nested_nested_function, some_int)
+            result = check_type((function_type, 2), (function_type, 1), int)(first_level_func)(second_level_func, 12)
         except Exception as e:
-            given_arguments_count = 1
-            discrepancies_argument_type = e.discrepancies[0].argument_type
-            self.assertEqual(discrepancies_argument_type, given_arguments_count)
+            self.assertEqual(str(e), 'The number of passed arguments and types do not match!')
+
+
+    def test_nested_functions_missing_decorator_parameter(self):
+        try:
+            function_type = types.FunctionType
+            third_level_func = lambda some_int: some_int * 0
+            second_level_func = lambda nested_function, some_int: nested_function(some_int)
+            first_level_func = lambda nested_function, nested_nested_function, some_int: nested_function(nested_nested_function, some_int)
+            result = check_type((function_type, 2), int)(first_level_func)(second_level_func, third_level_func, 12)
+        except Exception as e:
+            self.assertEqual(str(e), 'The number of passed arguments and types do not match!')
+
+
+    def test_three_wrapped_functions_case(self):
+        function_type = types.FunctionType
+        first_func = check_type(int, int, (function_type, 2))(lambda min_d, max_d, generator_d: generator_d(min_d, max_d))
+        second_func = check_type(int, int, (function_type, 2))(lambda min_d, max_d, generator_d: generator_d(min_d, max_d))
+        third_func = check_type((function_type, 3), (function_type, 3), int)(lambda first_func, second_func, some_int: 'something')
+        result = third_func(first_func, second_func, 10)
+        self.assertEqual(result, 'something')
+
+
+    def test_three_wrapped_functions_lost_wrapper(self):
+        function_type = types.FunctionType
+        first_func = check_type(int, int, (function_type, 2))(lambda min_d, max_d, generator_d: generator_d(min_d, max_d))
+        second_func = lambda min_d, max_d, generator_d: generator_d(min_d, max_d)
+        third_func = check_type((function_type, 3), (function_type, 3), int)(lambda first_func, second_func, some_int: 'something')
+        result = third_func(first_func, second_func, 10)
+        self.assertEqual(result, 'something')
+
+
+    def test_three_wrapped_functions_wrong_format_of_type(self):
+        try:
+            function_type = types.FunctionType
+            first_func = check_type(int, int, (function_type, 2))(lambda min_d, max_d, generator_d: generator_d(min_d, max_d))
+            second_func = check_type(int, int, (function_type, 2))(lambda min_d, max_d, generator_d: generator_d(min_d, max_d))
+            third_func = check_type(function_type, 3, (function_type, 3), int)(lambda first_func, second_func, some_int: 'something')
+            result = third_func(first_func, second_func, 10)
+            self.assertEqual(result, 'something')
+        except Exception as e:
+            self.assertEqual(str(e), 'The number of passed arguments and types do not match!')
+        
 
 
 
