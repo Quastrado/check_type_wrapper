@@ -264,7 +264,7 @@ class DecoratorTest(unittest.TestCase):
     def test_three_wrapped_functions_case(self):
         function_type = types.FunctionType
         first_func = check_type(int, int, (function_type, 2))(lambda min_d, max_d, generator_d: generator_d(min_d, max_d))
-        second_func = check_type(int, int, (function_type, 2))(lambda min_d, max_d, generator_d: generator_d(min_d, max_d))
+        second_func = check_type(int, int, function_type, 2)(lambda min_d, max_d, generator_d: generator_d(min_d, max_d))
         third_func = check_type((function_type, 3), (function_type, 3), int)(lambda first_func, second_func, some_int: 'something')
         result = third_func(first_func, second_func, 10)
         self.assertEqual(result, 'something')
