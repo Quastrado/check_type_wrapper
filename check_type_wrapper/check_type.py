@@ -30,7 +30,7 @@ def lambda_args_matching(lambda_func, lambda_params):
             argument_type=passed_type.__name__
         ))
     return discrepancies
-
+    
 
 def args_matching(args_dict, types_dict, kwargs, ktypes):
     if len(args_dict) != len(types_dict):
@@ -43,7 +43,7 @@ def args_matching(args_dict, types_dict, kwargs, ktypes):
     for key in all_args.keys():
         if isinstance(all_args[key], types.FunctionType):
             discrepancies+=lambda_args_matching(all_args[key], all_types[key])
-        continue
+        
         if not isinstance(all_args[key], all_types[key]):
             discrepancy_items = discrepancy_item(key, all_types[key].__name__, type(all_args[key]).__name__)
             discrepancies.append(discrepancy_items)
@@ -76,4 +76,3 @@ def check_type(*types, **ktypes):
         wrapper.__check_type__ = {'function': func, 'types': types, 'ktypes': ktypes}
         return wrapper
     return decorator
-
