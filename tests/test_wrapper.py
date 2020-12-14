@@ -62,24 +62,12 @@ class DecoratorTest(unittest.TestCase):
         self.assertEqual(result, 2+2j)
     
     
-    def test_type_mismatch_complex(self):
-        with self.assertRaises(TypeMissMatchException) as e:
-            function = lambda my_complex, my_int: my_complex + my_int
-            result = check_type(int, str)(function)(1+2j, '1')
-
-
     def test_str_type_match(self):
         function = lambda my_str, another_str: my_str + another_str
         result = check_type(str, str)(function)('5', '1')
         self.assertEqual(result, '51')
     
     
-    def test_type_mismatch_str(self):
-        with self.assertRaises(TypeMissMatchException) as e:
-            function = lambda my_str, another_str: my_str + another_str
-            result = check_type(str, str)(function)(5, '1')
-
-
     def test_list_type_match(self):
         function = lambda my_list: my_list
         result = check_type(list)(function)(['a', 2, 'c'])
@@ -138,23 +126,33 @@ class DecoratorTest(unittest.TestCase):
 
     def test_decorator_type_missmatch_exception(self):
         with self.assertRaises(TypeMissMatchException) as ex:
-            check_type(int, str)(lambda integer, string: (integer, string))('str', 'str')
-        e = ex.exception.discrepancies
-        self.assertEqual((1, 'int', 'str'), (len(e), e[0].expected_type, e[0].argument_type))
+            @check_type(int, str)
+            def function(some_int, some_str):
+                return some_int, some_str
+            result = function('str', 'str')
+            self.assertEqual(result, ('str', 'str'))
 
-
+    
     def test_function_as_argument_success(self):
         func_type = types.FunctionType
         argument_function = lambda some_int: some_int + 1
-        result = check_type(func_type, int)(lambda func, some_int: func(some_int))(argument_function, 12)
+        result = check_type((func_type, int), int)(lambda func, some_int: func(some_int))(argument_function, 12)
         self.assertEqual(result, 13)
-    
+
+
+    def test_function_without_arguments_as_argument(self):
+        func_type = types.FunctionType
+        @check_type()
+        def function():
+            return True
+        result = (function())
+        self.assertEqual(result, True)
     
     def test_function_as_argument_type_missmatch(self):
         with self.assertRaises(TypeMissMatchException):
             func_type = types.FunctionType
             argument_function = lambda some_int: some_int + 1
-            result = check_type(func_type, int)(lambda func, some_int: func(some_int))(argument_function, '12')
+            result = check_type((func_type, int), int)(lambda func, some_int: func(some_int))(argument_function, '12')
 
 
     def test_function_as_argument_args_type_count_missmatch(self):
@@ -204,7 +202,11 @@ class DecoratorTest(unittest.TestCase):
             function_type = types.FunctionType
             function = lambda some_function, some_int, another_int: some_function(some_int)
             argument_function = lambda some_int: some_int
-            result = check_type((2,), int)(function)(argument_function, 12)
+            result = check_type(
+                (function_type, int),
+                int,
+                int
+                )(function)(argument_function, 12)
         except Exception as e:
             message = 'The number of passed arguments and types do not match!'
             self.assertEqual(str(e), message)
@@ -217,7 +219,7 @@ class DecoratorTest(unittest.TestCase):
             argument_function = lambda some_int: some_int
             result = check_type(function_type, int)(function)(argument_function, 12)
         except Exception as e:
-            message = 'The number of passed arguments and types do not match!'
+            message = "'type' object is not iterable"
             self.assertEqual(str(e), message)
     
     
@@ -226,7 +228,9 @@ class DecoratorTest(unittest.TestCase):
         function = lambda some_function: some_function
         argument_function = lambda another_nested_function, some_int: another_nested_function(some_int)
         another_nested_function = lambda some_int: some_int * 0
-        result = check_type(function_type)(function)(argument_function)(check_type(int)(another_nested_function), 12)
+        result = check_type(
+            (function_type, (function_type, int), int),
+            )(function)(argument_function)(check_type(int)(another_nested_function), 12)
         self.assertEqual(result, 0)
 
 
@@ -235,7 +239,11 @@ class DecoratorTest(unittest.TestCase):
         third_level_func = lambda some_int: some_int * 0
         second_level_func = lambda nested_function, some_int: nested_function(some_int)
         first_level_func = lambda nested_function, nested_nested_function, some_int: nested_function(nested_nested_function, some_int)
-        result = check_type((function_type, 2), (function_type, 1), int)(first_level_func)(second_level_func, third_level_func, 12)
+        result = check_type(
+            (function_type, (function_type, int), int),
+            (function_type, int),
+            int,
+            )(first_level_func)(second_level_func, third_level_func, 12)
         self.assertEqual(result, 0)
 
 
@@ -263,18 +271,26 @@ class DecoratorTest(unittest.TestCase):
 
     def test_three_wrapped_functions_case(self):
         function_type = types.FunctionType
-        first_func = check_type(int, int, (function_type, 2))(lambda min_d, max_d, generator_d: generator_d(min_d, max_d))
-        second_func = check_type(int, int, function_type, 2)(lambda min_d, max_d, generator_d: generator_d(min_d, max_d))
-        third_func = check_type((function_type, 3), (function_type, 3), int)(lambda first_func, second_func, some_int: 'something')
+        first_func = check_type(int, int, (function_type, int, int))(lambda min_d, max_d, generator_d: generator_d(min_d, max_d))
+        second_func = check_type(int, int, (function_type, int, int))(lambda min_d, max_d, generator_d: generator_d(min_d, max_d))
+        third_func = check_type(
+            (function_type, int, int, (function_type, int, int)),
+            (function_type, int, int, (function_type, int, int)),
+            int
+            )(lambda first_func, second_func, some_int: 'something')
         result = third_func(first_func, second_func, 10)
         self.assertEqual(result, 'something')
 
 
     def test_three_wrapped_functions_lost_wrapper(self):
         function_type = types.FunctionType
-        first_func = check_type(int, int, (function_type, 2))(lambda min_d, max_d, generator_d: generator_d(min_d, max_d))
+        first_func = check_type(int, int, (function_type, int, int))(lambda min_d, max_d, generator_d: generator_d(min_d, max_d))
         second_func = lambda min_d, max_d, generator_d: generator_d(min_d, max_d)
-        third_func = check_type((function_type, 3), (function_type, 3), int)(lambda first_func, second_func, some_int: 'something')
+        third_func = check_type(
+            (function_type, int, int, (function_type, int, int)),
+            (function_type, int, int, (function_type, int, int)),
+            int
+            )(lambda first_func, second_func, some_int: 'something')
         result = third_func(first_func, second_func, 10)
         self.assertEqual(result, 'something')
 
@@ -282,9 +298,13 @@ class DecoratorTest(unittest.TestCase):
     def test_three_wrapped_functions_wrong_format_of_type(self):
         try:
             function_type = types.FunctionType
-            first_func = check_type(int, int, (function_type, 2))(lambda min_d, max_d, generator_d: generator_d(min_d, max_d))
-            second_func = check_type(int, int, (function_type, 2))(lambda min_d, max_d, generator_d: generator_d(min_d, max_d))
-            third_func = check_type(function_type, 3, (function_type, 3), int)(lambda first_func, second_func, some_int: 'something')
+            first_func = check_type(int, int, (function_type, int, int))(lambda min_d, max_d, generator_d: generator_d(min_d, max_d))
+            second_func = check_type(int, int, (function_type, int, int))(lambda min_d, max_d, generator_d: generator_d(min_d, max_d))
+            third_func = check_type(
+                (function_type, int, int, (function_type, int, int)),
+                (function_type, int, int, (function_type, int, int)),
+                int
+                )(lambda first_func, second_func, some_int: 'something')
             result = third_func(first_func, second_func, 10)
             self.assertEqual(result, 'something')
         except Exception as e:
@@ -295,4 +315,3 @@ class DecoratorTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-# write more tests for decorator and funk as argument
