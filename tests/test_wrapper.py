@@ -311,7 +311,5 @@ class DecoratorTest(unittest.TestCase):
             self.assertEqual(str(e), 'The number of passed arguments and types do not match!')
         
 
-
-
 if __name__ == '__main__':
     unittest.main()
