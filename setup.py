@@ -7,7 +7,8 @@ with open('README.md', 'r') as fh:
 
 setup(
     name='Quastrado_check_type_wrapper',
-    version='0.1.4',
+    use_scm_version=True,
+    setup_requires=['setuptools_scm'],
     author='Quastrado',
     author_email='quastrado@gmail.com',
     description='''
