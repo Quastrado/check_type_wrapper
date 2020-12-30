@@ -7,7 +7,7 @@ with open('README.md', 'r') as fh:
 
 setup(
     name='Quastrado_check_type_wrapper',
-    version='0.1.5',
+    version='0.1.6',
     author='Quastrado',
     author_email='quastrado@gmail.com',
     description='''
