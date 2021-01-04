@@ -1,4 +1,5 @@
 from setuptools import find_packages, setup
+import versioneer
 
 
 with open('README.md', 'r') as fh:
@@ -7,7 +8,8 @@ with open('README.md', 'r') as fh:
 
 setup(
     name='Quastrado_check_type_wrapper',
-    version='1.0.0',
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     author='Quastrado',
     author_email='quastrado@gmail.com',
     description='''
