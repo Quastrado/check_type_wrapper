@@ -1,6 +1,7 @@
+import inspect
 import types
-from discrepancy_item import DiscrepancyItem
-from exception import TypeMissMatchException
+from .discrepancy_item import DiscrepancyItem
+from .exception import TypeMissMatchException
 
 
 def lambda_args_matching(lambda_func, lambda_params):
