@@ -46,6 +46,32 @@ Invalid type of argument 2. Expect int, not str
 ```
 
 
+## Functions as an arguments
+
+
+You can also use a decorator if you want to pass another function as an argument to the wrapped function
+
+You will need to import the types module
+```python
+import types
+```
+As a parameter for the wrapper, pass a tuple, where the first element will be types.FunctionType, and the next - the types of arguments that the function will accept
+
+```python
+import types
+from check_type_wrapper import check_type
+
+@check_type((types.FunctionType, int), int)
+def func(arg1, arg2):
+    return arg1(arg2)
+
+arg1 = 3
+arg2 = lambda a : a + 10
+
+result = func(arg2, arg1)
+```
+
+
 # Status
 
 
