@@ -75,3 +75,12 @@ def check_type(*types, **ktypes):
         wrapper.__check_type__ = {'function': func, 'types': types, 'ktypes': ktypes}
         return wrapper
     return decorator
+
+
+class CheckTypeWrapper:
+    def __init__(self, function):
+        self.function = function
+
+    def __call__(self, *args, **kwargs):
+        self.function(*args, **kwargs)
+    
