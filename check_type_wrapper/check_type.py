@@ -1,7 +1,7 @@
 import inspect
 import types
-from .discrepancy_item import DiscrepancyItem
-from .exception import TypeMissMatchException
+from discrepancy_item import DiscrepancyItem
+from exception import TypeMissMatchException
 
 
 def lambda_args_matching(lambda_func, lambda_params):
@@ -78,9 +78,23 @@ def check_type(*types, **ktypes):
 
 
 class CheckTypeWrapper:
-    def __init__(self, function):
-        self.function = function
+    def __init__(self, *arg):
+        self._arg = arg
+        
+    def __call__(self, *param_arg):
+        if len(param_arg) == 1:
+            def wrapper(a, b):
+                result = param_arg[0](a, b)
+                return result 
+            return wrapper
+        else:
+            expo = 2
+            result = self._arg(param_arg[0], param_arg[1])
+            return result, expo
 
-    def __call__(self, *args, **kwargs):
-        self.function(*args, **kwargs)
-    
+
+@CheckTypeWrapper(int, str)
+def func(a, b):
+    return a, b
+
+print(func(1, '1'))
