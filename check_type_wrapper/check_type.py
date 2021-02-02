@@ -4,7 +4,7 @@ from .discrepancy_item import DiscrepancyItem
 from .exception import TypeMissMatchException
 
 
-class check_type:
+class CheckTypeWrapper:
     def __init__(self, *passed_types, **passed_ktypes):
         self.passed_types = passed_types
         self.passed_ktypes = passed_ktypes
