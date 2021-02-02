@@ -28,7 +28,7 @@ Import the decorator. Write a simple function and wrap
 ```python
 from check_type_wrapper import check_type
 
-@check_type(int, int)
+@CheckTypeWrapper(int, int)
 def func(arg1, arg2):
     return a + b
 
@@ -61,7 +61,7 @@ As a parameter for the wrapper, pass a tuple, where the first element will be ty
 import types
 from check_type_wrapper import check_type
 
-@check_type((types.FunctionType, int), int)
+@CheckTypeWrapper((types.FunctionType, int), int)
 def func(arg1, arg2):
     return arg1(arg2)
 
